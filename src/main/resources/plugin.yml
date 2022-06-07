@@ -1,0 +1,6 @@
+name: LanguageSystem
+version: '${project.version}'
+main: de.xnonymous.languagesystem.paper.LanguageSystem
+api-version: 1.16
+authors: [ XNonymous ]
+description: Simple LanguageSystem with Inventory on Join
