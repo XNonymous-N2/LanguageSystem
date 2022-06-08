@@ -1,8 +1,10 @@
 package de.xnonymous.languagesystem.paper.inventories;
 
+import de.xnonymous.api.mysql.MySQL;
 import de.xnonymous.languagesystem.paper.LanguageSystem;
 import de.xnonymous.languagesystem.utils.Lang;
 import de.xnonymous.usefulapi.paper.PaperUsefulAPI;
+import de.xnonymous.usefulapi.paper.util.ChatUtil;
 import de.xnonymous.usefulapi.paper.util.ItemBuilder;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
@@ -29,12 +31,18 @@ public class PickLangInventory implements InventoryProvider {
         for (int i = 0; i < locales.size(); i++) {
             Locale lang = locales.get(i);
             contents.set(0, i, ClickableItem.of(ItemBuilder.builder()
-                    .displayName("§e" + Lang.requestData(api, lang, "name"))
+                    .displayName("§e1lang:name:lang1")
                     .custom(true)
-                    .skull(Lang.requestData(api, lang, "head"))
+                    .skull("1lang:name:lang1")
                     .material(Material.PLAYER_HEAD)
                     .build().toItemStack(), event -> {
+                MySQL mySQL = api.getMySQL();
 
+                mySQL.delete("lang", "uuid", player.getUniqueId().toString());
+                mySQL.insertData("lang", "`uuid`, `locale`", player.getUniqueId().toString(), lang.toString());
+
+                player.closeInventory();
+                ChatUtil.sendMessage(player, "1lang:change:lang1");
             }));
         }
     }

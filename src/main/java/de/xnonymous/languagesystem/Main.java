@@ -2,6 +2,7 @@ package de.xnonymous.languagesystem;
 
 import de.xnonymous.languagesystem.pub.RequestAllPubSub;
 import de.xnonymous.languagesystem.pub.RequestPubSub;
+import de.xnonymous.languagesystem.utils.Lang;
 import de.xnonymous.usefulapi.UsefulAPI;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.simpleyaml.configuration.file.YamlFile;

@@ -31,7 +31,7 @@ public class Lang {
         }
     }
 
-    public static String requestData(UsefulAPI usefulAPI, UUID uuid, String key) {
+    public static String requestData(UsefulAPI usefulAPI, UUID uuid, String key, Object... replaces) {
         String text = ReplaceUtils.replaceColon(key);
         int identify = new Random().nextInt(50000);
         usefulAPI.log("Requestion language data with identify: " + identify);
@@ -61,7 +61,7 @@ public class Lang {
                 unsubscribe();
             }
         }, "langr");
-        return string[0];
+        return String.format(string[0], replaces);
     }
 
     public static String requestData(UsefulAPI usefulAPI, Locale lang, String key) {
