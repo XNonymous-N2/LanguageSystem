@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import de.xnonymous.languagesystem.utils.Lang;
@@ -17,6 +18,7 @@ import lombok.Getter;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.UUID;
 
 public final class LanguageSystem extends PaperInstance {
@@ -32,6 +34,7 @@ public final class LanguageSystem extends PaperInstance {
                 .listenerPackage("de.xnonymous.languagesystem.paper.listeners")
                 .commandPackage("de.xnonymous.languagesystem.paper.commands")
                 .name("LanguageSystem")
+                .prefix("§7LanguageSystem =>")
                 .commandCooldownMessage(consumerUtil -> {
                     CommandSender player = consumerUtil.getPlayer();
                     UUID uuid = player instanceof Player ? ((Player) player).getUniqueId() : UUID.randomUUID();
@@ -68,39 +71,45 @@ public final class LanguageSystem extends PaperInstance {
 
         ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
         protocolManager.addPacketListener(new PacketAdapter(this, ListenerPriority.HIGHEST, PacketType.values()) {
+
             @Override
             public void onPacketReceiving(PacketEvent event) {
-
+                modifyPackets(event);
             }
 
             @Override
             public void onPacketSending(PacketEvent event) {
-                Player player = event.getPlayer();
-                StructureModifier<String> strings = event.getPacket().getStrings();
-                for (int i = 0; i < strings.getValues().size(); i++) {
-                    String read = strings.read(i);
-                    StringBuilder finish = new StringBuilder();
-                    if (read.contains("1lang:")) {
-                        for (String s : read.split("1lang:")) {
-                            if (!s.contains(":lang1")) {
-                                finish.append(s);
-                                continue;
-                            }
-
-                            String s1 = s.split(":lang1")[0];
-
-                            finish.append(Lang.requestData(getApi(), player.getUniqueId(), s1));
-                            finish.append(s.replaceFirst(s1 + ":lang1", ""));
-                        }
-                    }
-                    strings.write(i, finish.toString());
-                }
+                modifyPackets(event);
             }
         });
+
     }
 
     @Override
     public void postDisable() {
 
+    }
+
+    public void modifyPackets(PacketEvent event) {
+        Player player = event.getPlayer();
+        String read = "";
+
+        StringBuilder finish = new StringBuilder();
+        if (read.contains("1lang:")) {
+            for (String s : read.split("1lang:")) {
+                if (!s.contains(":lang1")) {
+                    finish.append(s);
+                    continue;
+                }
+
+                String s1 = s.split(":lang1")[0];
+
+                finish.append(Lang.requestData(getApi(), player.getUniqueId(), s1));
+                finish.append(s.replaceFirst(s1 + ":lang1", ""));
+            }
+        } else return;
+
+
+        event.setPacket(PacketContainer.fromPacket(event.getPacket()));
     }
 }
