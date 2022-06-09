@@ -18,6 +18,7 @@ import lombok.Getter;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,16 +71,33 @@ public final class LanguageSystem extends PaperInstance {
         inventoryManager.init();
 
         ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-        protocolManager.addPacketListener(new PacketAdapter(this, ListenerPriority.HIGHEST, PacketType.values()) {
-
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                modifyPackets(event);
-            }
+        protocolManager.addPacketListener(new PacketAdapter(this, ListenerPriority.HIGHEST, PacketType.Play.Server.CHAT) {
 
             @Override
             public void onPacketSending(PacketEvent event) {
-                modifyPackets(event);
+                PacketContainer packet = event.getPacket();
+                Field messageField = packet.getModifier().getField(0);
+                messageField.setAccessible(true);
+                String msg = "";
+                try {
+                    msg = (String) messageField.get(packet);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                while(msg.contains("1lang:")){
+                    if(msg.contains("1lang:")){
+                        String key = msg.split("1lang:")[1];
+                        key = key.split(":lang1")[0];
+                        msg = msg.replaceFirst("1lang:", "");
+                        msg = msg.replaceFirst(":lang1", Lang.requestData(getApi(), event.getPlayer().getUniqueId(), key));
+                    }
+                }
+                try {
+                    messageField.set(packet, msg);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                event.setPacket(packet);
             }
         });
 
@@ -88,28 +106,5 @@ public final class LanguageSystem extends PaperInstance {
     @Override
     public void postDisable() {
 
-    }
-
-    public void modifyPackets(PacketEvent event) {
-        Player player = event.getPlayer();
-        String read = "";
-
-        StringBuilder finish = new StringBuilder();
-        if (read.contains("1lang:")) {
-            for (String s : read.split("1lang:")) {
-                if (!s.contains(":lang1")) {
-                    finish.append(s);
-                    continue;
-                }
-
-                String s1 = s.split(":lang1")[0];
-
-                finish.append(Lang.requestData(getApi(), player.getUniqueId(), s1));
-                finish.append(s.replaceFirst(s1 + ":lang1", ""));
-            }
-        } else return;
-
-
-        event.setPacket(PacketContainer.fromPacket(event.getPacket()));
     }
 }
